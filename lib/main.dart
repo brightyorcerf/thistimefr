@@ -1,8 +1,4 @@
-// lib/main.dart
-//
-// Inner Child — "Your childhood self lives on your phone."
-// Entry point, system chrome config, and main navigation shell.
-
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'theme/app_theme.dart';
@@ -22,7 +18,7 @@ void main() {
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
-      systemNavigationBarColor: Color(0xFFFDF0D5),
+      systemNavigationBarColor: Colors.transparent,
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
@@ -51,11 +47,9 @@ class MainShell extends StatefulWidget {
   State<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell>
-    with SingleTickerProviderStateMixin {
+class _MainShellState extends State<MainShell> with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
 
-  // Explicitly typing this as List<Widget> to satisfy the compiler
   final List<Widget> _screens = [
     const DashboardScreen(),
     const StatsScreen(),
@@ -63,9 +57,9 @@ class _MainShellState extends State<MainShell>
   ];
 
   static const _navItems = [
-    _NavData(emoji: '🏠', label: 'Home'),
-    _NavData(emoji: '🧵', label: 'The Stitch'),
-    _NavData(emoji: '🛍️', label: 'Shop'),
+    _NavData(imagePath: 'assets/images/nav1.jpg', label: 'Home'),
+    _NavData(imagePath: 'assets/images/nav2.jpg', label: 'Stitch'),
+    _NavData(imagePath: 'assets/images/nav3.jpg', label: 'Shop'),
   ];
 
   void _selectTab(int index) {
@@ -77,44 +71,53 @@ class _MainShellState extends State<MainShell>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.cream,
+      backgroundColor: Colors.black,
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 450), // Mobile Frame
+          constraints: const BoxConstraints(maxWidth: 450),
           child: Container(
+            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: AppTheme.cream,
+              image: const DecorationImage(
+                image: AssetImage('assets/images/bg1.jpg'),
+                fit: BoxFit.cover,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 30,
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 40,
                   offset: const Offset(0, 10),
                 ),
               ],
             ),
-            child: IndexedStack(
-              index: _currentIndex,
-              children: _screens,
-            ),
-          ),
-        ),
-      ),
-      bottomNavigationBar: _CozyBottomNav(
-        currentIndex: _currentIndex,
-        items: _navItems,
-        onTap: _selectTab,
-      ),
-    );
+                child: Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: IndexedStack(
+                    index: _currentIndex,
+                    children: _screens,
+                  ),
+                  bottomNavigationBar: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                    child: _CozyBottomNav(
+                      currentIndex: _currentIndex,
+                      items: _navItems,
+                      onTap: _selectTab,
+                    ), 
+                  ),  
+                ),  
+              ),  
+            ),  
+          ), // Closes Center
+    ); // <--- ADD THE EXTRA ) AND ; HERE (Closes Outer Scaffold)
   }
-} // <--- THIS was the missing bracket that broke your build!
-
+}
 // ─────────────────────────────────────────────────────────────────────────────
-// Cozy bottom navigation bar components
+// Navigation Bar Components
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _NavData {
-  const _NavData({required this.emoji, required this.label});
-  final String emoji;
+  const _NavData({required this.imagePath, required this.label});
+  final String imagePath;
   final String label;
 }
 
@@ -131,41 +134,38 @@ class _CozyBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.cream,
-        border: Border(
-          top: BorderSide(
-            color: AppTheme.plumFaint.withOpacity(0.35),
-            width: 1,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.plum.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 66,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(
-              items.length,
-              (i) => _NavTab(
-                data: items[i],
-                isActive: i == currentIndex,
-                onTap: () => onTap(i),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(30),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
+        child: Container(
+          height: 70,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.82),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
               ),
-            ),
+            ],
           ),
-        ),
-      ),
-    );
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: List.generate(
+          items.length,
+          (i) => _NavTab(
+            data: items[i],
+            isActive: i == currentIndex,
+            onTap: () => onTap(i),
+          ),  
+        ), // List.generate
+      ), // Row
+      ), // Container
+     ), // BackdropFilter
+    ); // ClipRRect 
   }
 }
 
@@ -184,8 +184,7 @@ class _NavTab extends StatefulWidget {
   State<_NavTab> createState() => _NavTabState();
 }
 
-class _NavTabState extends State<_NavTab>
-    with SingleTickerProviderStateMixin {
+class _NavTabState extends State<_NavTab> with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
   late final Animation<double> _scale;
 
@@ -211,11 +210,9 @@ class _NavTabState extends State<_NavTab>
   void didUpdateWidget(covariant _NavTab old) {
     super.didUpdateWidget(old);
     if (widget.isActive && !old.isActive) {
-      _ctrl.forward().then((_) {
-        _ctrl.animateBack(0,
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.elasticOut);
-      });
+      _ctrl.forward().then((_) => _ctrl.animateBack(0,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.elasticOut));
     }
   }
 
@@ -229,31 +226,39 @@ class _NavTabState extends State<_NavTab>
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOutCubic,
-          width: widget.isActive ? 120 : 70, // Slightly wider to fit labels
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          width: widget.isActive ? 100 : 60,
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
           decoration: BoxDecoration(
-            color: widget.isActive ? AppTheme.softPink : Colors.transparent,
+            color: widget.isActive ? AppTheme.softPink.withOpacity(0.35) : Colors.transparent,
             borderRadius: BorderRadius.circular(22),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                widget.data.emoji,
-                style: TextStyle(
-                  fontSize: widget.isActive ? 20 : 22,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: Image.asset(
+                  widget.data.imagePath,
+                  width: 24,
+                  height: 24,
+                  fit: BoxFit.contain,
                 ),
               ),
               AnimatedSize(
                 duration: const Duration(milliseconds: 220),
                 curve: Curves.easeOutCubic,
                 child: widget.isActive
-                    ? Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: Text(
-                          widget.data.label,
-                          style: AppTheme.captionStyle(),
+                    ? Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 6),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              widget.data.label,
+                              style: AppTheme.captionStyle(),
+                            ),
+                          ),
                         ),
                       )
                     : const SizedBox.shrink(),

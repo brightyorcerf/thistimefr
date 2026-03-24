@@ -19,8 +19,7 @@ dev_dependencies:
   flutter_lints: ^3.0.0
 
 flutter:
-  uses-material-design: true
-  # Add your rive file to assets once you have it:
-  # assets:
-  #   - assets/rive/mascot.riv
-  #   - assets/images/
+  uses-material-design: true 
+  assets:
+  # - assets/rive/mascot.riv
+    - assets/images/

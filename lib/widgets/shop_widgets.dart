@@ -4,6 +4,7 @@
 // ShopCharm     — An item that "hangs" from a string at the top of its container
 
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
@@ -27,9 +28,9 @@ class CurrencyVialRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _MasonJarVial(amount: coins),
+        Expanded(child: _MasonJarVial(amount: coins)),
         const SizedBox(width: 20),
-        _NeonVial(amount: starDust),
+        Expanded(child: _NeonVial(amount: starDust)),
       ],
     );
   }
@@ -67,25 +68,23 @@ class _MasonJarVialState extends State<_MasonJarVial>
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 110,
       padding: const EdgeInsets.all(12),
       decoration: AppTheme.clayBox(
-        color: AppTheme.cream,
+        color: const Color(0xFFFDF5E8),
         radius: 24,
         elevation: 0.8,
       ),
       child: Column(
         children: [
-          // Jar icon
           AnimatedBuilder(
             animation: _shimmer,
             builder: (_, __) {
               return ShaderMask(
                 shaderCallback: (bounds) => LinearGradient(
                   colors: [
-                    AppTheme.coinGold,
-                    Colors.amber.shade200,
-                    AppTheme.coinGold,
+                    Colors.white.withOpacity(0.0),
+                    Colors.white.withOpacity(0.6),
+                    Colors.white.withOpacity(0.0),
                   ],
                   stops: [
                     (_shimmer.value - 0.3).clamp(0.0, 1.0),
@@ -95,7 +94,7 @@ class _MasonJarVialState extends State<_MasonJarVial>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ).createShader(bounds),
-                child: const Text('🫙', style: TextStyle(fontSize: 36)),
+                child: Image.asset('assets/images/coins.png', width: 52, height: 52, fit: BoxFit.contain),
               );
             },
           ),
@@ -114,65 +113,27 @@ class _MasonJarVialState extends State<_MasonJarVial>
 
 // ── Neon Vial (StarDust) ──────────────────────────────────────────────────────
 
-class _NeonVial extends StatefulWidget {
+class _NeonVial extends StatelessWidget {
   const _NeonVial({required this.amount});
   final int amount;
 
   @override
-  State<_NeonVial> createState() => _NeonVialState();
-}
-
-class _NeonVialState extends State<_NeonVial>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _pulse;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulse = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1600),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _pulse.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _pulse,
-      builder: (_, child) {
-        return Container(
-          width: 110,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppTheme.cream,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              ...AppTheme.clayShadow(elevation: 0.8),
-              BoxShadow(
-                color: AppTheme.neonGlow
-                    .withOpacity(0.15 + _pulse.value * 0.18),
-                blurRadius: 20 + _pulse.value * 12,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: child,
-        );
-      },
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: AppTheme.clayBox(
+        color: const Color(0xFFFDF5E8),
+        radius: 24,
+        elevation: 0.8,
+      ),
       child: Column(
         children: [
-          const Text('⚗️', style: TextStyle(fontSize: 36)),
+          Image.asset('assets/images/starDust.png', width: 52, height: 52, fit: BoxFit.contain),
           const SizedBox(height: 6),
           Text('StarDust', style: AppTheme.captionStyle()),
           const SizedBox(height: 2),
           Text(
-            '${widget.amount}',
+            '$amount',
             style: AppTheme.headlineStyle(size: 16),
           ),
         ],
@@ -207,7 +168,6 @@ class _ShopCharmState extends State<ShopCharm>
   @override
   void initState() {
     super.initState();
-    // Give each charm a unique phase to avoid sync
     final phase = widget.item.emoji.codeUnitAt(0) % 1000 / 1000.0;
     _swing = AnimationController(
       vsync: this,
@@ -224,24 +184,30 @@ class _ShopCharmState extends State<ShopCharm>
     super.dispose();
   }
 
-  void _onTap() {
-    HapticFeedback.lightImpact();
-    widget.onBuy?.call();
-  }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _onTap,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        widget.onBuy?.call();
+      },
       child: Column(
         children: [
+          // Hook ring
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFB8A0A8), width: 1.5),
+            ),
+          ),
           // String
           Container(
             width: 1.5,
-            height: 18,
+            height: 32,
             color: AppTheme.plumLight.withOpacity(0.50),
           ),
-          // Charm card
           AnimatedBuilder(
             animation: _swingAnim,
             builder: (_, child) => Transform.rotate(
@@ -249,55 +215,52 @@ class _ShopCharmState extends State<ShopCharm>
               alignment: Alignment.topCenter,
               child: child,
             ),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
-              decoration: AppTheme.clayBox(
-                color: widget.item.cardColor,
-                radius: 24,
-                elevation: 0.7,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Emoji icon
-                  Text(
-                    widget.item.emoji,
-                    style: const TextStyle(fontSize: 32),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: Colors.white.withOpacity(0.2)),
                   ),
-                  const SizedBox(height: 6),
-
-                  // Name
-                  Text(
-                    widget.item.name,
-                    style: AppTheme.bodyStyle(size: 12),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Price
-                  _PriceTag(item: widget.item),
-
-                  if (widget.item.owned)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF52B788).withOpacity(0.20),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '✓ Owned',
-                          style: AppTheme.captionStyle(
-                              color: const Color(0xFF2D7A57)),
-                        ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      widget.item.assetPath != null
+                        ? Image.asset(widget.item.assetPath!, width: 44, height: 44)
+                        : Text(widget.item.emoji, style: const TextStyle(fontSize: 32)),
+                      const SizedBox(height: 6),
+                      Text(
+                        widget.item.name,
+                        style: AppTheme.bodyStyle(size: 12),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                ],
+                      const SizedBox(height: 8),
+                      _PriceTag(item: widget.item),
+                      if (widget.item.owned)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF52B788).withOpacity(0.20),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '✓ Owned',
+                              style: AppTheme.captionStyle(color: const Color(0xFF2D7A57)),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -315,12 +278,11 @@ class _PriceTag extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: AppTheme.clayBox(
+      decoration: BoxDecoration(
         color: item.currency == ShopCurrency.coins
             ? AppTheme.starDust.withOpacity(0.85)
             : AppTheme.neonVial.withOpacity(0.85),
-        radius: 14,
-        elevation: 0.4,
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -340,10 +302,6 @@ class _PriceTag extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Data models
-// ─────────────────────────────────────────────────────────────────────────────
-
 enum ShopCurrency { coins, starDust }
 
 class ShopItem {
@@ -353,6 +311,7 @@ class ShopItem {
     required this.emoji,
     required this.price,
     required this.currency,
+    this.assetPath,
     this.cardColor = const Color(0xFFFDE2E4),
     this.owned = false,
     this.description = '',
@@ -363,12 +322,12 @@ class ShopItem {
   final String emoji;
   final int price;
   final ShopCurrency currency;
+  final String? assetPath;
   final Color cardColor;
   final bool owned;
   final String description;
 }
 
-/// Default shop catalogue — swap for your backend data.
 final kDefaultShopItems = <ShopItem>[
   const ShopItem(
     id: 'phoenix_feather',
@@ -376,7 +335,6 @@ final kDefaultShopItems = <ShopItem>[
     emoji: '🪶',
     price: 80,
     currency: ShopCurrency.starDust,
-    cardColor: Color(0xFFFFF3CD),
     description: 'Revives your child from permadeath (once).',
   ),
   const ShopItem(
@@ -385,7 +343,6 @@ final kDefaultShopItems = <ShopItem>[
     emoji: '🎀',
     price: 30,
     currency: ShopCurrency.coins,
-    cardColor: Color(0xFFFDE2E4),
     description: 'A cute bow for your mascot\'s hair.',
   ),
   const ShopItem(
@@ -394,7 +351,6 @@ final kDefaultShopItems = <ShopItem>[
     emoji: '🧥',
     price: 60,
     currency: ShopCurrency.coins,
-    cardColor: Color(0xFFF5F0E8),
     description: 'Cosy knit for autumn study sessions.',
   ),
   const ShopItem(
@@ -403,18 +359,7 @@ final kDefaultShopItems = <ShopItem>[
     emoji: '👑',
     price: 120,
     currency: ShopCurrency.starDust,
-    cardColor: Color(0xFFFFF3CD),
     description: 'Awarded to consistent scholars.',
-  ),
-  const ShopItem(
-    id: 'plum_skirt',
-    name: 'Plum Mini Skirt',
-    emoji: '👗',
-    price: 45,
-    currency: ShopCurrency.coins,
-    cardColor: Color(0xFFEDE0E3),
-    description: 'Pleated perfection.',
-    owned: true,
   ),
   const ShopItem(
     id: 'healing_tea',
@@ -422,7 +367,38 @@ final kDefaultShopItems = <ShopItem>[
     emoji: '🍵',
     price: 25,
     currency: ShopCurrency.coins,
-    cardColor: Color(0xFFDFF0E8),
     description: 'Restores 1 HP.',
+  ),
+  const ShopItem(
+    id: 'sunglass_1',
+    name: 'Aviator Shades',
+    emoji: '🕶️',
+    price: 40,
+    currency: ShopCurrency.coins,
+    assetPath: 'assets/images/sunglass1.png',
+  ),
+  const ShopItem(
+    id: 'sunglass_2',
+    name: 'Cat Eye Specs',
+    emoji: '🕶️',
+    price: 45,
+    currency: ShopCurrency.coins,
+    assetPath: 'assets/images/sunglass2.png',
+  ),
+  const ShopItem(
+    id: 'sunglass_3',
+    name: 'Party Glasses',
+    emoji: '🕶️',
+    price: 80,
+    currency: ShopCurrency.starDust,
+    assetPath: 'assets/images/sunglass3.png',
+  ),
+  const ShopItem(
+    id: 'sunglass_4',
+    name: 'Geek Frames',
+    emoji: '🕶️',
+    price: 35,
+    currency: ShopCurrency.coins,
+    assetPath: 'assets/images/sunglass4.png',
   ),
 ];

@@ -18,7 +18,9 @@ class GinghamPainter extends CustomPainter {
     // 1 · Base warm cream
     canvas.drawRect(
       Offset.zero & size,
-      Paint()..color = const Color(0xFFF5ECD7),
+      Paint()
+        ..color = const Color(0xFFF5ECD7).withOpacity(0.4)
+        ..blendMode = BlendMode.multiply,
     );
 
     const double sq = 24.0; // size of each check
@@ -75,7 +77,9 @@ class FeltPainter extends CustomPainter {
     // Base sage fill
     canvas.drawRect(
       Offset.zero & size,
-      Paint()..color = const Color(0xFFD0E1DC),
+      Paint()
+        ..color = const Color(0xFFD0E1DC).withOpacity(0.4)
+        ..blendMode = BlendMode.multiply,
     );
 
     final rng = Random(13);
@@ -109,6 +113,31 @@ class FeltPainter extends CustomPainter {
         radius: 1.0,
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
     canvas.drawRect(Offset.zero & size, vignette);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter old) => false;
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Dot Grid Background (Stats page)
+// ────────────────────────────────────────────────────────────────────────────
+
+class DotGridPainter extends CustomPainter {
+  const DotGridPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final dotPaint = Paint()
+      ..color = const Color(0xFFD4C8CB).withOpacity(0.4) // plumFaint opacity
+      ..style = PaintingStyle.fill;
+
+    const spacing = 20.0;
+    for (double x = 0; x <= size.width; x += spacing) {
+      for (double y = 0; y <= size.height; y += spacing) {
+        canvas.drawCircle(Offset(x, y), 1.5, dotPaint);
+      }
+    }
   }
 
   @override

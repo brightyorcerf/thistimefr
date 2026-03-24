@@ -24,7 +24,7 @@ class AppTheme {
   static const Color stampRed   = Color(0xFFCC2233);
   static const Color neonVial   = Color(0xFFB8F0FF);
   static const Color neonGlow   = Color(0xFF6FECFF);
-  static const Color heartRed   = Color(0xFFFF6B81);
+  static const Color heartRed   = Color(0xFFE8838F);
 
   // ─── Clay Shadow Factory ───────────────────────────────────────────────────
   /// Returns layered box-shadows that simulate a matte clay / plushie surface.
@@ -94,6 +94,13 @@ class AppTheme {
         fontWeight: FontWeight.w900,
         color: color ?? plum,
         letterSpacing: -0.5,
+        shadows: const [
+          Shadow(
+            color: Colors.white,
+            blurRadius: 8,
+            offset: Offset(0, 1),
+          ),
+        ],
       );
 
   static TextStyle headlineStyle({double size = 20, Color? color}) =>

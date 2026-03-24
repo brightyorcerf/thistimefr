@@ -72,11 +72,12 @@ class _StatsScreenState extends State<StatsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Felt background
-          Positioned.fill(child: CustomPaint(painter: const FeltPainter())),
-
+          const Positioned.fill(
+            child: CustomPaint(painter: DotGridPainter()),
+          ),
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,15 +86,15 @@ class _StatsScreenState extends State<StatsScreen>
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 16),
                         _buildSummaryRow(),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
                         _buildGraphCard(),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
                         _buildDipNotice(),
                         const SizedBox(height: 16),
                         Text(
@@ -101,7 +102,10 @@ class _StatsScreenState extends State<StatsScreen>
                           style: AppTheme.headlineStyle(size: 16),
                         ),
                         const SizedBox(height: 12),
-                        ..._log.map((e) => _PolaroidCard(entry: e)),
+                        ...List.generate(
+                          _log.length,
+                          (i) => _PolaroidCard(entry: _log[i], index: i),
+                        ),
                         const SizedBox(height: 32),
                       ],
                     ),
@@ -119,7 +123,7 @@ class _StatsScreenState extends State<StatsScreen>
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
       child: Row(
         children: [
           Column(
@@ -324,7 +328,7 @@ class _DipStamp extends StatelessWidget {
                 fontSize: 13,
                 fontWeight: FontWeight.w900,
                 fontFamily: 'Nunito',
-                letterSpacing: 2,
+                letterSpacing: 3.0,
               ),
             ),
             Text(
@@ -334,7 +338,7 @@ class _DipStamp extends StatelessWidget {
                 fontSize: 7,
                 fontWeight: FontWeight.w900,
                 fontFamily: 'Nunito',
-                letterSpacing: 1.5,
+                letterSpacing: 3.0,
               ),
             ),
           ],
@@ -361,13 +365,14 @@ class _LogEntry {
 }
 
 class _PolaroidCard extends StatelessWidget {
-  const _PolaroidCard({required this.entry});
+  const _PolaroidCard({required this.entry, required this.index});
   final _LogEntry entry;
+  final int index;
 
   @override
   Widget build(BuildContext context) {
-    // Slight random tilt per card
-    final tilt = (entry.day.codeUnitAt(0) % 7 - 3) * 0.012;
+    // Deterministic left / right tilt
+    final tilt = index.isEven ? 0.025 : -0.025;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -380,10 +385,14 @@ class _PolaroidCard extends StatelessWidget {
             boxShadow: AppTheme.clayShadow(
                 color: const Color(0xFF5C4A50), elevation: 0.7),
           ),
-          child: Column(
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.topCenter,
             children: [
-              // Photo area
-              Container(
+              Column(
+                children: [
+                  // Photo area
+                  Container(
                 height: 80,
                 decoration: BoxDecoration(
                   color: entry.isGoalMet
@@ -476,6 +485,20 @@ class _PolaroidCard extends StatelessWidget {
               ),
             ],
           ),
+          // Tape element
+          Positioned(
+            top: -5,
+            child: Container(
+              width: 28,
+              height: 10,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+        ],
+      ),
         ),
       ),
     );

@@ -167,62 +167,30 @@ class _SquishyButtonState extends State<SquishyButton>
 // Convenience: Heart HP button (clay red heart that beats on tap)
 // ─────────────────────────────────────────────────────────────────────────────
 
-class HeartHP extends StatefulWidget {
-  const HeartHP({super.key, required this.filled, this.size = 36});
+class HeartHP extends StatelessWidget {
+  const HeartHP({super.key, required this.filled, this.size = 28});
 
   final bool filled;
   final double size;
 
   @override
-  State<HeartHP> createState() => _HeartHPState();
-}
-
-class _HeartHPState extends State<HeartHP>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _pulse;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulse = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _pulse.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _pulse,
-      builder: (_, __) {
-        final pulse = widget.filled ? 1.0 + _pulse.value * 0.06 : 1.0;
-        return Transform.scale(
-          scale: pulse,
-          child: Container(
-            width: widget.size,
-            height: widget.size,
-            decoration: AppTheme.clayBox(
-              color: widget.filled
-                  ? AppTheme.heartRed
-                  : AppTheme.plumFaint.withOpacity(0.4),
-              radius: widget.size * 0.5,
-              elevation: widget.filled ? 0.8 : 0.3,
+    return Container(
+      width: size,
+      height: size,
+      decoration: filled
+          ? AppTheme.clayBox(
+              color: AppTheme.heartRed,
+              radius: size * 0.5,
+              elevation: 0.8,
+            )
+          : BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFD4B8BC), width: 1.5),
             ),
-            child: Center(
-              child: Text(
-                widget.filled ? '❤️' : '🤍',
-                style: TextStyle(fontSize: widget.size * 0.52),
-              ),
-            ),
-          ),
-        );
-      },
+      child: Center(
+        child: filled ? Text('❤️', style: TextStyle(fontSize: size * 0.52)) : const SizedBox.shrink(),
+      ),
     );
   }
 }

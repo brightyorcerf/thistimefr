@@ -89,7 +89,9 @@ class _CovenantScrollState extends State<CovenantScroll>
         builder: (context, _) {
           return Transform.rotate(
             angle: _rollAngle.value,
-            child: Container(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
               decoration: BoxDecoration(
                 color: AppTheme.parchment,
                 borderRadius: BorderRadius.circular(20),
@@ -118,25 +120,35 @@ class _CovenantScrollState extends State<CovenantScroll>
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 10),
-                    child: Row(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('📜', style: TextStyle(fontSize: 18)),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            _isOpen ? 'Today\'s Covenant' : widget.goal,
-                            style: AppTheme.headlineStyle(size: 15),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                        Row(
+                          children: [
+                            const Text('📜', style: TextStyle(fontSize: 18)),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                _isOpen ? 'Today\'s Covenant' : widget.goal,
+                                style: AppTheme.headlineStyle(size: 15),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            AnimatedRotation(
+                              turns: _isOpen ? 0.5 : 0,
+                              duration: const Duration(milliseconds: 300),
+                              child: const Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: AppTheme.plumLight,
+                              ),
+                            ),
+                          ],
                         ),
-                        AnimatedRotation(
-                          turns: _isOpen ? 0.5 : 0,
-                          duration: const Duration(milliseconds: 300),
-                          child: const Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: AppTheme.plumLight,
-                          ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 4,
+                          child: _YarnProgressBar(progress: _progress, color: _progressColor),
                         ),
                       ],
                     ),
@@ -162,6 +174,7 @@ class _CovenantScrollState extends State<CovenantScroll>
                   _ScrollRoll(isTop: false),
                 ],
               ),
+             ),
             ),
           );
         },
@@ -262,15 +275,6 @@ class _ScrollBody extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Progress bar
-          Text(
-            '${currentHours.toStringAsFixed(1)} / ${targetHours.toStringAsFixed(1)} hrs',
-            style: AppTheme.captionStyle(),
-          ),
-          const SizedBox(height: 6),
-          _YarnProgressBar(progress: progress, color: progressColor),
-          const SizedBox(height: 14),
-
           // Bottom row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -316,7 +320,6 @@ class _YarnProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 12,
       decoration: BoxDecoration(
         color: AppTheme.plumFaint.withOpacity(0.3),
         borderRadius: BorderRadius.circular(12),
@@ -350,8 +353,8 @@ class _StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final (label, emoji) = progress >= 1.0
         ? ('Completed!', '🌟')
-        : progress >= 0.5
-            ? ('In Progress', '✏️')
+        : progress > 0.0
+            ? ('${(progress * 100).toInt()}% done', '✏️')
             : ('Not Started', '😴');
 
     return Container(

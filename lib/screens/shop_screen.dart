@@ -96,12 +96,12 @@ class _ShopScreenState extends State<ShopScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.cream,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Background: cream with faint crosshatch
-          Positioned.fill(child: _ShopBackground()),
-
+          Positioned.fill(
+            child: Image.asset('assets/images/bg3.jpg', fit: BoxFit.cover),
+          ),
           SafeArea(
             child: Column(
               children: [
@@ -110,10 +110,10 @@ class _ShopScreenState extends State<ShopScreen> {
 
                 // Currency vials
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: CurrencyVialRow(coins: _coins, starDust: _starDust),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
 
                 // Tab (future: could be category filter)
                 _buildCategoryRow(),
@@ -123,12 +123,12 @@ class _ShopScreenState extends State<ShopScreen> {
                 Expanded(
                   child: GridView.builder(
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       mainAxisSpacing: 8,
-                      crossAxisSpacing: 12,
+                      crossAxisSpacing: 16,
                       childAspectRatio: 0.72,
                     ),
                     itemCount: _items.length,
@@ -150,7 +150,7 @@ class _ShopScreenState extends State<ShopScreen> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
       child: Row(
         children: [
           Column(
@@ -225,7 +225,9 @@ class _ShopBgPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(
       Offset.zero & size,
-      Paint()..color = const Color(0xFFFDF5E8),
+      Paint()
+        ..color = const Color(0xFFFDF5E8).withOpacity(0.4)
+        ..blendMode = BlendMode.multiply,
     );
     final p = Paint()
       ..color = const Color(0xFFE8D8C0).withOpacity(0.35)

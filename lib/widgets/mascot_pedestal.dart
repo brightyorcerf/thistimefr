@@ -12,6 +12,7 @@
 //          stateMachines: ['MoodMachine'],
 //        )
 
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
@@ -55,12 +56,16 @@ class MascotPedestal extends StatefulWidget {
     super.key,
     this.mood = MascotMood.okay,
     this.mascotName = 'Koko',
-    this.diameter = 220.0,
+    this.diameter = 190.0,
+    required this.currentHours,
+    required this.targetHours,
   });
 
   final MascotMood mood;
   final String mascotName;
   final double diameter;
+  final double currentHours;
+  final double targetHours;
 
   @override
   State<MascotPedestal> createState() => _MascotPedestalState();
@@ -100,6 +105,13 @@ class _MascotPedestalState extends State<MascotPedestal>
     super.dispose();
   }
 
+  double get _progress => widget.targetHours > 0 ? (widget.currentHours / widget.targetHours).clamp(0.0, 1.0) : 0.0;
+  Color get _progressColor {
+    if (_progress >= 1.0) return const Color(0xFF52B788);
+    if (_progress >= 0.5) return AppTheme.starDust;
+    return AppTheme.heartRed;
+  }
+
   @override
   Widget build(BuildContext context) {
     final d = widget.diameter;
@@ -114,7 +126,8 @@ class _MascotPedestalState extends State<MascotPedestal>
           // ── Outer glow ring ──────────────────────────────────────────────
           AnimatedBuilder(
             animation: _glowAnim,
-            builder: (_, __) => Container(
+            builder: (_, __) => AnimatedContainer(
+              duration: const Duration(milliseconds: 800),
               width: d + 40 + _glowAnim.value * 16,
               height: d + 40 + _glowAnim.value * 16,
               decoration: BoxDecoration(
@@ -181,15 +194,14 @@ class _MascotPedestalState extends State<MascotPedestal>
             ),
           ),
 
-          // ── Inner ring decoration ────────────────────────────────────────
-          Container(
-            width: d - 20,
-            height: d - 20,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: glow.withOpacity(0.35),
-                width: 2,
+          // ── Inner ring decoration / MoodRing ────────────────────────────
+          SizedBox(
+            width: d + 10,
+            height: d + 10,
+            child: CustomPaint(
+              painter: MoodRingPainter(
+                progress: _progress,
+                progressColor: _progressColor,
               ),
             ),
           ),
@@ -215,7 +227,8 @@ class _MascotPedestalState extends State<MascotPedestal>
           // ── Mood badge ───────────────────────────────────────────────────
           Positioned(
             bottom: 22,
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 800),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
               decoration: AppTheme.clayBox(
                 color: glow.withOpacity(0.80),
@@ -243,8 +256,48 @@ class _MascotPedestalState extends State<MascotPedestal>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Placeholder visual — replace with RiveAnimation.asset(...)
+// Sub-widgets & Painters
 // ─────────────────────────────────────────────────────────────────────────────
+
+class MoodRingPainter extends CustomPainter {
+  final double progress;
+  final Color progressColor;
+  MoodRingPainter({required this.progress, required this.progressColor});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final drawRadius = size.width / 2;
+
+    // Background track
+    final trackPaint = Paint()
+      ..color = const Color(0xFFE8D8D0).withOpacity(0.4)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5.0;
+    canvas.drawCircle(center, drawRadius, trackPaint);
+
+    // Progress arc
+    if (progress > 0) {
+      final progressPaint = Paint()
+        ..color = progressColor
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 5.0;
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: drawRadius),
+        pi / 2, // start at bottom
+        progress * 2 * pi, // sweep clockwise
+        false,
+        progressPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant MoodRingPainter old) {
+    return old.progress != progress || old.progressColor != progressColor;
+  }
+}
 
 class _MascotPlaceholder extends StatelessWidget {
   const _MascotPlaceholder({
@@ -259,15 +312,6 @@ class _MascotPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Paper-doll style placeholder inspired by the clay figure reference images.
-    // Replace this entire widget with your Rive animation:
-    //
-    //   RiveAnimation.asset(
-    //     'assets/rive/mascot.riv',
-    //     stateMachines: ['MoodMachine'],
-    //     controllers: [yourController],
-    //   )
-
     final expressions = {
       MascotMood.thriving:   '(˶ᵔ ᵕ ᵔ˶)',
       MascotMood.okay:       '(• ᴗ •)',
